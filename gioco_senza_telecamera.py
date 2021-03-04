@@ -69,25 +69,25 @@ class Giocatore(pygame.sprite.Sprite):
                   self.rect.move_ip(5, 0)
                   
 
-#Setting up Sprites        
+     
 giocatore = Giocatore()
 nemico = Nemico()
 
-#Creating Sprites Groups
+
 enemies = pygame.sprite.Group()
 enemies.add(nemico)
 personaggi = pygame.sprite.Group()
 personaggi.add(giocatore)
 personaggi.add(nemico)
 
-#Adding a new User event 
+ 
 INC_velocita = pygame.USEREVENT + 1
 pygame.time.set_timer(INC_velocita, 1000)
 
-#Game Loop
+
 while True:
       
-    #Cycles through all events occuring  
+
     for event in pygame.event.get():
         if event.type == INC_velocita:
               velocita += 0.5      
@@ -101,12 +101,12 @@ while True:
     fonts = font_piccolo.render(str(punteggio), True, NERO)
     DISPLAYSURF.blit(fonts, (10,10))
 
-    #Moves and Re-draws all Sprites
+    #movimento di tutti i personaggi sullo schermo
     for entita in personaggi:
         DISPLAYSURF.blit(entita.image, entita.rect)
         entita.move()
 
-    #To be run if collision occurs between Player and Nemico
+    #controllo se ci sono collisioni tra gli sprite (i personaggi)
     if pygame.sprite.spritecollideany(giocatore, enemies):
           pygame.mixer.Sound('crash.wav').play()
           time.sleep(1)
