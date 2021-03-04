@@ -1,40 +1,56 @@
 '''
-Author: Michele Alladio, Samuele Forneris
+Author: Michele Alladio, Samuele Forneris, Alessandro Seimandi, Nicolò La Valle
 Descrizione:
 Codice che implementa la cattura di oggetti di colore rosso tramite la libreria opencv.
 Viene ricavata in modo ciclico la coordinata x dell'ogetto di colore rosso e viene utilizzata
-per far muovere un quadrato di colore bianco mediante la libreria PyGame.
+per far muovere una macchina mediante la libreria PyGame.
 '''
 
-import sys, cv2, pygame
+import pygame, sys, cv2
 import numpy as np
+from pygame import mixer
+from pygame.locals import *
 
-NERO = (0,0,0)    #RGB
-BIANCO = (255,255,255)
-
-ALTEZZA = 600   #altezza schermata PyGame
+#variabili globali
+SCORE = 0
+ALTEZZA = 700   #altezza schermata PyGame
 BASE = 640  #base schermata PyGame
-Y_PREDEFINITA = 400 #y del quadrato nella schermata PyGame
-dimSquare = 10  #dimensione del quadrato
+Y_PREDEFINITA = 550 #y della macchina nella schermata PyGame
+
+#Colori
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+
+#inizializzazioni
+pygame.init()
+playerImg = pygame.image.load("player.png")
+background = pygame.image.load("street.png")
+background = pygame.transform.scale(background,(BASE, ALTEZZA))
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode((BASE,ALTEZZA))    #schermo
+
+#settaggio dei font
+font = pygame.font.SysFont("Verdana", 60)
+font_small = pygame.font.SysFont("Verdana", 20)
+#game_over = font.render("Game Over", True, BLACK)
 
 cattura = cv2.VideoCapture(0)   #cattura tramite videocamera
+#dimensioni della cattura
+#cattura.set(cv2.CAP_PROP_FRAME_WIDTH, BASE)
+#cattura.set(cv2.CAP_PROP_FRAME_HEIGHT, ALTEZZA)
 
-def drawSquare(posX, posY): #disegno del quadrato bianco
-        square = pygame.Rect(posX, posY, dimSquare, dimSquare) 
-        pygame.draw.rect(screen, BIANCO, square)
-
-def main():
-
-    global screen   #schermo
-    
-    pygame.init()   #inizializzazione di pygame
-    screen = pygame.display.set_mode((BASE,ALTEZZA))    #richiede una tupla
+def loop():
+    ultimaX = BASE / 2  #alla partenza del programma, se opencv non rileva oggetti rossi, la macchina viene posizionata a metà dello schermo (asse x)
 
     while True:
 
-        screen.fill(NERO)   #colore schermo nero
+        screen.fill(BLACK)   #colore schermo nero
+
+        screen.blit(background,(0, 0))  #impostazione dello sfondo
         
         _, frame = cattura.read()
+        frame = cv2.flip(frame, 1)  #flip dell'immagine sull'asse orizzontale
+
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         #cattura del colore rosso
@@ -50,16 +66,24 @@ def main():
         cv2.imshow("Frame", frame)
         cv2.imshow("Rosso", rosso)
 
-        x, y, base, altezza = cv2.boundingRect(mascheraColoreRosso) #returna x, y, base e altezza
+        xRosso, yRosso, base, altezza = cv2.boundingRect(mascheraColoreRosso) #returna x, y, base e altezza
 
-        drawSquare(x, Y_PREDEFINITA)   #disegno un quadrato in base a dove muovo l'oggetto rosso
+        if xRosso == 0: #se opencv non rileva oggetti rossi la x viene impostata a 0 e la macchina
+            xRosso = ultimaX    #per evitare questo, quando succede, la x viene impostata all'ultima posizione rilevata
+        ultimaX = xRosso    #si aggiorna l'ultima posizione rilevata
+
+        screen.blit(playerImg,(xRosso, Y_PREDEFINITA))  #la macchina viene impostata alla x rilevata da opencv
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:   #se l'evento è l'uscita
                 pygame.quit()
                 sys.exit()  #il programma termina in maniera pulita
-        
+
+        clock.tick(60)  #60 fps
         pygame.display.update() #update della finestra di pygame
+
+def main():
+    loop()
         
 
 if __name__ == "__main__":
