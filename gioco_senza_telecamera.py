@@ -1,125 +1,68 @@
-import pygame, sys
+import pygame
+import sys
+from pygame import mixer
 from pygame.locals import *
-import random, time
+import random
+
+#Dichiarazione di variabili e costanti
+SCREEN_WIDTH = 400
+SCREEN_HEIGHT = 600
+SPEED = 5
+SCORE = 0
+playerX = 175
+playerY = 480
 
 
+#Inizializzazione di pygame con immagini
 pygame.init()
+playerImg = pygame.image.load("Player.png")
+background = pygame.image.load("AnimatedStreet.png")
+background = pygame.transform.scale(background,(SCREEN_WIDTH,SCREEN_HEIGHT))
+clock = pygame.time.Clock()
 
 
-FramePerSec = pygame.time.Clock()
+#Colori
+BLUE  = (0, 0, 255)
+RED   = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
-#COLORI
-ROSSO   = (255, 0, 0)
-NERO = (0, 0, 0)
-BIANCO = (255, 255, 255)
-
-#DIMENSIONI DELLA FINESTRA DI GIOCO
-LARGHEZZA = 400
-ALTEZZA = 600
-
-
-#FONTS
+#Fonts
 font = pygame.font.SysFont("Verdana", 60)
-font_piccolo = pygame.font.SysFont("Verdana", 20)
-game_over = font.render("Game Over", True, NERO)
-
-sfondo = pygame.image.load("AnimatedStreet.png")
+font_small = pygame.font.SysFont("Verdana", 20)
+game_over = font.render("Game Over", True, BLACK)
 
 
-#CREAZIONE DELLO SCHERMO BIANCO
-DISPLAYSURF = pygame.display.set_mode((LARGHEZZA, ALTEZZA))
-DISPLAYSURF.fill(BIANCO)
-pygame.display.set_caption("Game")
+def main():
+    global screen
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))  #dimensioni schermo
+    screen.fill(BLACK)
+    global playerX, playerY
 
-#variabili per la velocità e il punteggio
-velocita = 5
-punteggio = 0
+    while(True):
+        screen.blit(background,(0, 0))
+        screen.blit(playerImg,(playerX, playerY))
+        for event in pygame.event.get():        #ascolta eventi (mouse, tastiera ecc)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:    #muove in alto il robot
+                    if playerY >= 0:
+                        playerY=playerY-10
+                if event.key == pygame.K_DOWN:  #muove in basso il robot
+                    if playerY <= 500:
+                        playerY= playerY+10
+                if event.key == pygame.K_RIGHT: #muove in destra il robot
+                    if playerX <= 350:
+                        playerX=playerX+10
+                if event.key == pygame.K_LEFT:  #muove in sinistra il robot
+                    if playerX >= 0:
+                        playerX=playerX-10
 
-class Nemico(pygame.sprite.Sprite):
-      def __init__(self):
-        super().__init__()
-        self.image = pygame.image.load("Enemy.png")
-        self.surf = pygame.Surface((42, 70))
-        self.rect = self.surf.get_rect(center = (random.randint(40,LARGHEZZA-40), 0))
+        clock.tick(60)
+        pygame.display.update()
 
-      def move(self):
-        global punteggio
-        self.rect.move_ip(0,velocita)
-        if (self.rect.bottom > 600):
-            punteggio += 1
-            self.rect.top = 0
-            self.rect.center = (random.randint(40, LARGHEZZA - 40), 0)
-
-
-class Giocatore(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__() 
-        self.image = pygame.image.load("Player.png")
-        self.surf = pygame.Surface((40, 75))
-        self.rect = self.surf.get_rect(center = (160, 520))
-       
-    def move(self):
-        pressed_keys = pygame.key.get_pressed()
-        
-        if self.rect.left > 0:
-              if pressed_keys[K_LEFT]:
-                  self.rect.move_ip(-5, 0)
-        if self.rect.right < LARGHEZZA:        
-              if pressed_keys[K_RIGHT]:
-                  self.rect.move_ip(5, 0)
-                  
-
-     
-giocatore = Giocatore()
-nemico = Nemico()
-
-
-enemies = pygame.sprite.Group()
-enemies.add(nemico)
-personaggi = pygame.sprite.Group()
-personaggi.add(giocatore)
-personaggi.add(nemico)
-
- 
-INC_velocita = pygame.USEREVENT + 1
-pygame.time.set_timer(INC_velocita, 1000)
-
-
-while True:
-      
-
-    for event in pygame.event.get():
-        if event.type == INC_velocita:
-              velocita += 0.5      
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-
-
-
-    DISPLAYSURF.blit(sfondo, (0,0))
-    fonts = font_piccolo.render(str(punteggio), True, NERO)
-    DISPLAYSURF.blit(fonts, (10,10))
-
-    #movimento di tutti i personaggi sullo schermo
-    for entita in personaggi:
-        DISPLAYSURF.blit(entita.image, entita.rect)
-        entita.move()
-
-    #controllo se ci sono collisioni tra gli sprite (i personaggi)
-    if pygame.sprite.spritecollideany(giocatore, enemies):
-          pygame.mixer.Sound('crash.wav').play()
-          time.sleep(1)
-                   
-          DISPLAYSURF.fill(ROSSO)
-          DISPLAYSURF.blit(game_over, (30,250))
-          
-          pygame.display.update()
-          for entita in personaggi:
-                entita.kill()
-          time.sleep(2)
-          pygame.quit()
-          sys.exit()        
-        
-    pygame.display.update()
-    FramePerSec.tick(60)
+if __name__ == "__main__":
+    main()
