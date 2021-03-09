@@ -1,2 +1,2 @@
 # CodiciUtili
-Pezzi di codici scritti che verranno messi insieme per raggiungere il risultato finale
+Costanti update dei codici utilizzati per arrivare al risultato finale del videogioco
