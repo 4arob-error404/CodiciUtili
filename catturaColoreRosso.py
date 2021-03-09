@@ -36,8 +36,13 @@ polizia = pygame.image.load("veicoli\polizia.png")
 dizVeicoli = {"macchinaRossa": macchinaRossa, "macchinaGialla": macchinaGialla, "macchinaAzzurra": macchinaAzzurra, 
                 "ambulamza": ambulanza, "taxi": taxi, "polizia": polizia}
 
-background = pygame.image.load("street.png")
-gameOverImg = pygame.image.load("gameOver.png")
+background = pygame.image.load("immaginiGioco\street.png")
+gameOverImg = pygame.image.load("immaginiGioco\gameOver.png")
+
+turboImg = pygame.image.load("immaginiGioco\Turbo.png")
+turboScrittaImg = pygame.image.load("immaginiGioco\TurboScritta.png")
+turboFiammaImg = pygame.image.load("immaginiGioco\TurboFiamma.png")
+
 clock = pygame.time.Clock()
 
 #settaggio dei font
@@ -75,32 +80,66 @@ screen = pygame.display.set_mode((baseSchermo,altezzaSchermo))    #schermo
 gameOverImg = pygame.transform.scale(gameOverImg,(baseSchermo, altezzaSchermo))
 background = pygame.transform.scale(background,(baseSchermo, altezzaSchermo))
 playerImg = pygame.transform.scale(playerImg,(enemyWidth, enemyHeight))
+turboImg = pygame.transform.scale(turboImg,(enemyWidth, enemyWidth))
+turboFiammaImg = pygame.transform.scale(turboFiammaImg,(enemyWidth, enemyWidth))
+turboScrittaImg = pygame.transform.scale(turboScrittaImg,(400,300))
 enemyX = xSpawnCorsia1
 enemyX2 = xSpawnCorsia3
 
 for veicolo,_ in dizVeicoli.items():    #cicla i veicoli nel dizionario e li ridimensiona in base alla grandezza della schermata
     dizVeicoli[veicolo] = pygame.transform.scale(dizVeicoli[veicolo],(enemyWidth, enemyHeight))
 
-def spawnNemici(enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, veicoloRandom):
+def spawnNemici(enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, fineSpawnNemiciRandom1, fineSpawnNemiciRandom2, fineSpawnNemiciRandom3, fineSpawnNemiciRandom4, fineSpawnNemiciRandom5, fineSpawnNemiciRandom6, veicoloRandom1, veicoloRandom2, veicoloRandom3, veicoloRandom4, veicoloRandom5, veicoloRandom6, speed, cntSpeed, turboOn):
+
     screen.blit(background,(0, 0))  #impostazione dello sfondo
 
-    screen.blit(veicoloRandom,(enemyX, enemyY1))    
+    if fineSpawnNemiciRandom1 == True:
+        veicoloRandom1 = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+        fineSpawnNemiciRandom1 = False
+
+    screen.blit(veicoloRandom1,(enemyX, enemyY1))  
 
     if enemyY3 <= altezzaSchermo+enemyWidth:    #se l'ultima auto è ancora nello schermo
-        enemyY1 = enemyY1 + config.SPEED   #incremento posizione della prima auto   
+        enemyY1 = enemyY1 + speed   #incremento posizione della prima auto   
         if enemyY1 > spawn1:   #quando la prima auto scende sotto una certa y parte la seconda auto
-            screen.blit(veicoloRandom,(enemyX, enemyY2))
-            enemyY2 = enemyY2 + config.SPEED   #incremento posizione della seconda auto 
+            if fineSpawnNemiciRandom2 == True:
+                veicoloRandom2 = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+                fineSpawnNemiciRandom2 = False
+
+            screen.blit(veicoloRandom2,(enemyX, enemyY2))
+            enemyY2 = enemyY2 + speed
+
             if enemyY2 > spawn2:   #quando la seconda auto scende sotto una certa y parte la terza auto
-                screen.blit(veicoloRandom,(enemyX, enemyY3))
-                enemyY3 = enemyY3 + config.SPEED   #incremento posizione della terza auto
+                if fineSpawnNemiciRandom3 == True:
+                    veicoloRandom3 = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+                    fineSpawnNemiciRandom3 = False
+
+                screen.blit(veicoloRandom3,(enemyX, enemyY3))
+                enemyY3 = enemyY3 + speed
+
                 if enemyY3 > spawn3:
                     spawnaSeconda = True
     else:   #inizio nuova fila di auto
         enemyY3 = -100
         enemyY2 = -100
         enemyY1 = -100
-        veicoloRandom = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+        fineSpawnNemiciRandom1 = True
+        fineSpawnNemiciRandom2 = True
+        fineSpawnNemiciRandom3 = True
+        cntSpeed += 1
+
+        #gestione di aumento della velocità graduale (più il contatore è un numero alto più la velocità aumenta lentamente)
+        if turboOn == False:
+            if cntSpeed < 8:  
+                if cntSpeed % 2 == 0:
+                    speed += 1
+            if cntSpeed >= 8:
+                if cntSpeed % 3 == 0:
+                    speed += 1
+            if cntSpeed >= 13:
+                if cntSpeed % 4 == 0:
+                    speed += 1
+
         #scelta random della corsia per lo spawn della fila di automobili
         num = random.randint(1,4)
         if num == 1:
@@ -111,21 +150,39 @@ def spawnNemici(enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, en
             enemyX = xSpawnCorsia3
 
     if (enemyY3 >= limite1 and spawnaSeconda == True) or (enemyY6 <= altezzaSchermo+limite2 and spawnaSeconda == True):
-        screen.blit(veicoloRandom,(enemyX2, enemyY4))
+        
+        if fineSpawnNemiciRandom4 == True:
+            veicoloRandom4 = random.choice(list(dizVeicoli.values())) #scelta random della skin del veicolo
+            fineSpawnNemiciRandom4 = False
+
+        screen.blit(veicoloRandom4,(enemyX2, enemyY4))
+
         if enemyY6 <= altezzaSchermo+enemyHeight:
-            enemyY4 = enemyY4 + config.SPEED
+            enemyY4 = enemyY4 + speed
             if enemyY4 > spawn1:
-                screen.blit(veicoloRandom,(enemyX2, enemyY5))
-                enemyY5 = enemyY5 + config.SPEED
+                if fineSpawnNemiciRandom5 == True:
+                    veicoloRandom5 = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+                    fineSpawnNemiciRandom5 = False
+
+                screen.blit(veicoloRandom5,(enemyX2, enemyY5))
+                enemyY5 = enemyY5 + speed
+
                 if enemyY4 > spawn2:
-                    screen.blit(veicoloRandom,(enemyX2, enemyY6))
-                    enemyY6 = enemyY6 + config.SPEED
+                    if fineSpawnNemiciRandom6 == True:
+                        veicoloRandom6 = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+                        fineSpawnNemiciRandom6 = False
+
+                    screen.blit(veicoloRandom6,(enemyX2, enemyY6))
+                    enemyY6 = enemyY6 + speed
+                    fineSpawnNemiciRandom2 = False
+
         else:   #inizio di una nuova fila di auto
-            velocitaNemico += 1
             enemyY4 = -100
             enemyY5 = -100
             enemyY6 = -100
-            veicoloRandom = random.choice(list(dizVeicoli.values())) #scelta random del la skin del veicolo
+            fineSpawnNemiciRandom4 = True
+            fineSpawnNemiciRandom5 = True
+            fineSpawnNemiciRandom6 = True
             #scelta random della corsia per lo spawn della fila di automobili
             num = random.randint(1,4) 
             if num == 1:
@@ -135,7 +192,8 @@ def spawnNemici(enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, en
             elif num == 3:
                 enemyX2 = xSpawnCorsia3
 
-    return enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, veicoloRandom
+    return enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, fineSpawnNemiciRandom1, fineSpawnNemiciRandom2, fineSpawnNemiciRandom3, fineSpawnNemiciRandom4, fineSpawnNemiciRandom5, fineSpawnNemiciRandom6, veicoloRandom1, veicoloRandom2, veicoloRandom3, veicoloRandom4, veicoloRandom5, veicoloRandom6, speed, cntSpeed
+
 
 def cercaColore(ultimaX):
     _, frame = cattura.read()
@@ -164,8 +222,8 @@ def cercaColore(ultimaX):
     
     return xRosso+limite1, ultimaX
 
-def disegnaPlayer(playerX):
-    screen.blit(playerImg,(playerX, yStaticaGiocatore))  #la macchina viene impostata alla x rilevata da opencv
+def disegnaPlayer(playerX, playerY):
+    screen.blit(playerImg,(playerX, playerY))  #la macchina viene impostata alla x rilevata da opencv
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:   #se l'evento è l'uscita
@@ -187,8 +245,48 @@ def controlloCollisioni(playerX, playerY, enemyX, enemyY1, enemyY2, enemyY3, ene
         pygame.quit()   #dopo quattro secondi chiude la finestra
         sys.exit()  #interrompe il programma in modo pulito
 
+def spawnNitro(speed, cntSpeed, playerY, playerX, turboOn, nitroX, nitroY):
+    if cntSpeed % 3 == 0 and cntSpeed != 0: #il turbo spawna ogni 3 file di macchine
+        if turboOn == False:    #se il turbo è disattivato
+            #viene creata l'immagine del turbo in una delle tre corsie e conmpie un movimento di discesa con l'incremento della sua y
+            screen.blit(turboImg,(nitroX, nitroY))  
+            nitroY += speed/2
+
+            if (playerX >= nitroX-enemyWidth and playerX <= nitroX+enemyWidth) and (yStaticaGiocatore <= nitroY+enemyWidth and yStaticaGiocatore >= nitroY):    #se il giocatore "tocca" il turbo
+                nitroY = 0  #si resetta la y del turbo
+                screen.blit(turboImg,(0, config.Y_FUORI_SCHERMO))   #si toglie dallo schermo l'immagine del turbo
+                turboOn = True
+
+    else:   #se il turbo non spawna
+        if playerY <= yStaticaGiocatore:    #il giocatore viene riportato alla sua y predefinita
+            playerY += 2
+        
+        nitroY = 0  #si resetta la y del turbo
+        turboOn = False #il turbo viene disattivato
+
+        #spawn randomico del logo del turbo
+        num = random.randint(1,4)
+        if num == 1:
+            nitroX = xSpawnCorsia1
+        elif num == 2:
+            nitroX = xSpawnCorsia2
+        elif num == 3:
+            nitroX = xSpawnCorsia3
+
+    if turboOn == True: #se il turbo è attivato
+        playerY -= speed/2   #il player avanza
+        #viene mostrato il logo del turbo e la fiamma
+        screen.blit(turboScrittaImg,(0, 0))
+        screen.blit(turboFiammaImg,(playerX, playerY+enemyHeight))
+
+    pygame.display.update()
+
+    return speed, playerY, turboOn, nitroX, nitroY
+
+
 def main():
     global enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6
+
     spawnaSeconda = False
 
     ultimaX = baseSchermo / 2  #alla partenza del programma, se opencv non rileva oggetti rossi, la macchina viene posizionata a metà dello schermo (asse x)
@@ -200,22 +298,44 @@ def main():
     pygame.mixer.Sound('suoni\Accensione_auto.mp3').play()
     pygame.mixer.Sound('suoni\Rumore_auto.mp3').play(-1)
 
-    veicoloRandom = random.choice(list(dizVeicoli.values())) #prima scelta random della skin del veicolo
+    #variabili per il controllo dello spawn dei veicoli
+    fineSpawnNemiciRandom1 = True
+    fineSpawnNemiciRandom2 = True
+    fineSpawnNemiciRandom3 = True
+    fineSpawnNemiciRandom4 = True
+    fineSpawnNemiciRandom5 = True
+    fineSpawnNemiciRandom6 = True
 
-    #varibili per lo spawn random dei veicoli nemici
+    #variabili per lo spawn randomico della skin dei veicoli (inizializzazioni di convenzione per evitare errori)
+    veicoloRandom1 = ambulanza
+    veicoloRandom2 = ambulanza
+    veicoloRandom3 = ambulanza
+    veicoloRandom4 = ambulanza
+    veicoloRandom5 = ambulanza
+    veicoloRandom6 = ambulanza
+
+    turboOn = False #variabile per il controllo dell'attivazione del turbo
+
+    #inizializzazioni di convenzione per evitare errori
+    nitroX = 0
+    nitroY = 0
+
+    speed = config.SPEED_INIZIALE   #velocità della auto nemiche
+    cntSpeed = 0    #viene incrementata la velocità ogni volta che due linee di macchine scompaiono
+
+    playerY = yStaticaGiocatore
 
     while True:
         
-        enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, veicoloRandom = spawnNemici(enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, veicoloRandom)
+        enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, fineSpawnNemiciRandom1, fineSpawnNemiciRandom2, fineSpawnNemiciRandom3, fineSpawnNemiciRandom4, fineSpawnNemiciRandom5, fineSpawnNemiciRandom6, veicoloRandom1, veicoloRandom2, veicoloRandom3, veicoloRandom4, veicoloRandom5, veicoloRandom6, speed, cntSpeed = spawnNemici(enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6, spawnaSeconda, velocitaNemico, fineSpawnNemiciRandom1, fineSpawnNemiciRandom2, fineSpawnNemiciRandom3, fineSpawnNemiciRandom4, fineSpawnNemiciRandom5, fineSpawnNemiciRandom6, veicoloRandom1, veicoloRandom2, veicoloRandom3, veicoloRandom4, veicoloRandom5, veicoloRandom6, speed, cntSpeed, turboOn)
         
         playerX, ultimaX = cercaColore(ultimaX)
 
-        disegnaPlayer(playerX)
+        disegnaPlayer(playerX, playerY)
 
-        controlloCollisioni(playerX, yStaticaGiocatore, enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6)
-        
+        controlloCollisioni(playerX, playerY, enemyX, enemyY1, enemyY2, enemyY3, enemyX2, enemyY4, enemyY5, enemyY6)
+
+        speed, playerY, turboOn, nitroX, nitroY = spawnNitro(speed, cntSpeed, playerY, playerX, turboOn, nitroX, nitroY)
 
 if __name__ == "__main__":
     main()
-
-
